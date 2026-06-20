@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Royal Vaishnav Hotel | Madhepura</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --maroon: #800020; --gold: #D4AF37; --cream: #FFF8E7; }
+        body { background-color: var(--cream); font-family: 'Poppins', sans-serif; }
+        .heading { font-family: 'Playfair Display', serif; }
+        .bg-royal { background-color: var(--maroon); }
+        .text-gold { color: var(--gold); }
+        .border-gold { border-color: var(--gold); }
+        #admin-modal { display: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="pb-20">
+
+    <!-- 1. HEADER / HERO -->
+    <header class="bg-royal text-white text-center py-16 px-6 shadow-2xl border-b-4 border-gold">
+        <h1 class="heading text-5xl text-gold mb-2">Royal Vaishnav</h1>
+        <p class="tracking-[3px] text-[10px] uppercase opacity-80">Authentic Vegetarian • Madhepura</p>
+    </header>
+
+    <!-- 2. CATEGORY SLIDER -->
+    <div class="flex overflow-x-auto gap-3 p-4 no-scrollbar">
+        <button onclick="renderUI('All')" class="bg-royal text-gold px-6 py-2 rounded-full font-bold whitespace-nowrap shadow-md">All Menu</button>
+        <button onclick="renderUI('Thali')" class="bg-white border border-gray-200 px-6 py-2 rounded-full font-bold whitespace-nowrap shadow-sm">Thali</button>
+        <button onclick="renderUI('Chinese')" class="bg-white border border-gray-200 px-6 py-2 rounded-full font-bold whitespace-nowrap shadow-sm">Chinese</button>
+        <button onclick="renderUI('Burger')" class="bg-white border border-gray-200 px-6 py-2 rounded-full font-bold whitespace-nowrap shadow-sm">Burgers</button>
+    </div>
+
+    <!-- 3. FOOD LIST -->
+    <div id="food-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6 p-4">
+        <!-- Dishes will load here -->
+    </div>
+
+    <!-- 4. ADMIN BUTTON (Footer) -->
+    <div class="mt-10 text-center p-10 border-t border-gray-200">
+        <button onclick="openAdmin()" class="bg-gray-200 text-gray-600 px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-widest">Manage Menu (Edit)</button>
+    </div>
+
+    <!-- 5. ADMIN PANEL (Modal) -->
+    <div id="admin-modal" class="fixed inset-0 bg-white z-[9999] overflow-y-auto p-6">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="heading text-3xl text-maroon">Edit Menu</h2>
+            <button onclick="closeAdmin()" class="bg-red-600 text-white px-4 py-2 rounded-full font-bold">Close</button>
+        </div>
+
+        <!-- Add Form -->
+        <div class="bg-gray-100 p-6 rounded-3xl mb-10">
+            <h3 class="text-xs font-bold text-gray-400 uppercase mb-4">Add New Item</h3>
+            <div class="space-y-4">
+                <input type="text" id="add-name" placeholder="Dish Name" class="w-full p-4 rounded-xl border-none shadow-sm outline-none">
+                <input type="number" id="add-price" placeholder="Price (₹)" class="w-full p-4 rounded-xl border-none shadow-sm outline-none">
+                <select id="add-cat" class="w-full p-4 rounded-xl border-none shadow-sm bg-white outline-none">
+                    <option>Thali</option>
+                    <option>Chinese</option>
+                    <option>Burger</option>
+                    <option>Drinks</option>
+                </select>
+                <input type="text" id="add-img" placeholder="Image URL (Link)" class="w-full p-4 rounded-xl border-none shadow-sm outline-none">
+                <button onclick="saveNewDish()" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold shadow-lg">ADD TO SITE</button>
+            </div>
+        </div>
+
+        <!-- Current Items List -->
+        <h3 class="text-xs font-bold text-gray-400 uppercase mb-4">Current Dishes (Click to delete)</h3>
+        <div id="admin-items-list" class="space-y-3"></div>
+    </div>
+
+    <!-- WhatsApp Button -->
+    <a href="https://wa.me/917549263241" class="fixed bottom-6 left-6 bg-[#25D366] p-4 rounded-full shadow-2xl z-50">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="w-6 h-6">
+    </a>
+
+    <script>
+        // DATA LOGIC
+        let dishes = JSON.parse(localStorage.getItem('rv_data')) || [
+            { id: 1, name: 'Royal Special Thali', price: 220, cat: 'Thali', img: 'https://images.pexels.com/photos/12737656/pexels-photo-12737656.jpeg' },
+            { id: 2, name: 'Veg Chowmein', price: 120, cat: 'Chinese', img: 'https://images.pexels.com/photos/2347311/pexels-photo-2347311.jpeg' }
+        ];
+
+        // RENDER MAIN MENU
+        function renderUI(category = 'All') {
+            const grid = document.getElementById('food-grid');
+            grid.innerHTML = "";
+            
+            const filtered = category === 'All' ? dishes : dishes.filter(d => d.cat === category);
+
+            filtered.forEach(item => {
+                grid.innerHTML += `
+                    <div class="bg-white rounded-[30px] overflow-hidden shadow-sm border border-gold/10">
+                        <img src="${item.img}" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500'" class="w-full h-48 object-cover">
+                        <div class="p-6">
+                            <h4 class="heading text-xl text-[#800020]">${item.name}</h4>
+                            <div class="flex justify-between items-center mt-4">
+                                <span class="text-2xl font-bold">₹${item.price}</span>
+                                <button onclick="sendOrder('${item.name}', '${item.price}')" class="bg-royal text-gold px-6 py-2 rounded-full font-bold text-xs shadow-md">Order Now</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // ADMIN FUNCTIONS
+        function openAdmin() {
+            document.getElementById('admin-modal').style.display = 'block';
+            renderAdminList();
+        }
+        function closeAdmin() {
+            document.getElementById('admin-modal').style.display = 'none';
+        }
+
+        function saveNewDish() {
+            const name = document.getElementById('add-name').value;
+            const price = document.getElementById('add-price').value;
+            const cat = document.getElementById('add-cat').value;
+            const img = document.getElementById('add-img').value;
+
+            if(!name || !price) return alert("Please fill Name and Price!");
+
+            const newDish = { id: Date.now(), name, price, cat, img: img || '' };
+            dishes.push(newDish);
+            localStorage.setItem('rv_data', JSON.stringify(dishes));
+            
+            document.getElementById('add-name').value = "";
+            document.getElementById('add-price').value = "";
+            
+            renderAdminList();
+            renderUI();
+            alert("Dish Added!");
+        }
+
+        function deleteDish(id) {
+            if(confirm("Delete this dish?")) {
+                dishes = dishes.filter(d => d.id !== id);
+                localStorage.setItem('rv_data', JSON.stringify(dishes));
+                renderAdminList();
+                renderUI();
+            }
+        }
+
+        function renderAdminList() {
+            const list = document.getElementById('admin-items-list');
+            list.innerHTML = dishes.map(d => `
+                <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm">
+                    <div>
+                        <p class="font-bold text-sm">${d.name}</p>
+                        <p class="text-[10px] text-gray-400">₹${d.price} | ${d.cat}</p>
+                    </div>
+                    <button onclick="deleteDish(${d.id})" class="text-red-500 font-bold text-xs">DELETE</button>
+                </div>
+            `).join('');
+        }
+
+        function sendOrder(name, price) {
+            const msg = `Hello Royal Vaishnav Hotel,\nI want to order: *${name}*\nPrice: *₹${price}*\nConfirm please.`;
+            window.open(`https://wa.me/917549263241?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        // Initial Load
+        renderUI();
+    </script>
+</body>
+</html>
